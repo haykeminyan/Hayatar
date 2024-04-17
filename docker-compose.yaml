@@ -9,6 +9,6 @@ services:
       BOT_TOKEN: "6425359689:AAFlmH2c6nma0zvVbr4ABCPgRVoQcGS40hk"
     # Map the bot's exposed port to the host's port
     ports:
-      - "8443:443"
+      - "8543:443"
     # Restart the container automatically in case of failure
     restart: always
