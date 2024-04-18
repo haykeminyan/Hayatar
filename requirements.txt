@@ -1,3 +1,5 @@
 requests~=2.31.0
 telebot~=0.0.5
 transliterate~=1.10.2
+googletrans~=4.0.0-rc1
+pygoogletranslation~=2.0.6

@@ -10,5 +10,8 @@ services:
     # Map the bot's exposed port to the host's port
     ports:
       - "8543:443"
+    volumes:
+    - ./main:/app/main
     # Restart the container automatically in case of failure
     restart: always
+    command: bash -c "python /app/main/bot.py"
