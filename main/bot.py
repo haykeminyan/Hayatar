@@ -31,6 +31,11 @@ armenian_cities = [
     "Yerevan",
     "Gyumri",
     "Vanadzor",
+    "Stepanakert",
+    "Shushi",
+    "Martuni",
+    "Askeran",
+    "Ivanyan",
     "Hrazdan",
     "Etchmiadzin",
     "Kapan",
@@ -48,6 +53,7 @@ armenian_cities = [
     "Gavar",
     # Add more cities as needed
 ]
+channel_username = "@ArmenoScript"
 
 
 # Function to create a menu using ReplyKeyboardMarkup
@@ -74,13 +80,17 @@ def create_cities_menu():
 def start_bot(message):
     menu = create_menu()
     # Send a welcome message with the menu options
+    # Build the API URL
     bot.send_message(message.chat.id, "Please choose an option:", reply_markup=menu)
 
 
 # Command handler for /stop
 @bot.message_handler(commands=["stop"])
 def stop_bot(message):
-    bot.reply_to(message, "Bot is stopping. Goodbye!")
+    api_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={channel_username}&text=Bot is stopping. Կեցցե Հայաստան!"
+    # Send the request
+    response = requests.get(api_url)
+    bot.reply_to(message, "Bot is stopping. Կեցցե Հայաստան!")
     # Stop polling for messages
     bot.stop_polling()
     # Exit the program
@@ -92,6 +102,9 @@ def stop_bot(message):
 def show_unique_number_users(message):
     unique_users = len(set(user_interaction_counter.keys()))
     description = f"This bot has {unique_users} unique users."
+    api_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={channel_username}&text={description}"
+    # Send the request
+    response = requests.get(api_url)
     bot.reply_to(message, description)
     # Optional: you could also update the bot's description here
 
@@ -130,8 +143,15 @@ def handle_message(message):
                     f"Weather: {weather_description.capitalize()}\n"
                     f"Temperature: {temperature}°C"
                 )
+                # Build the API URL
+                api_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={channel_username}&text={weather_response}"
+                # Send the request
+                response = requests.get(api_url)
                 bot.reply_to(message, weather_response)
             else:
+                api_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={channel_username}&text=Sorry, I couldn't fetch the weather data for {city}. Please try again later."
+                # Send the request
+                response = requests.get(api_url)
                 # Handle API error
                 bot.reply_to(
                     message,
@@ -139,6 +159,9 @@ def handle_message(message):
                 )
 
         elif message.text == "Armenian Latin => Armenian":
+            api_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={channel_username}&text=Please send the message you want to transliterate from Armenian Latin to Armenian."
+            # Send the request
+            response = requests.get(api_url)
             # Ask the user to send a message for transliteration
             bot.reply_to(
                 message,
@@ -147,6 +170,9 @@ def handle_message(message):
             return
 
         elif message.text == "Russian => Armenian":
+            api_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={channel_username}&text=Please send the message you want to translate from Russian to Armenian."
+            # Send the request
+            response = requests.get(api_url)
             # Ask the user to send a message for translation
             bot.reply_to(
                 message,
@@ -160,14 +186,23 @@ def handle_message(message):
                 # Translate the message text from Russian to Armenian
                 translator = Translator()
                 transliterated_text = translator.translate(message.text, dest="hy").text
+                api_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={channel_username}&text={transliterated_text}"
+                # Send the request
+                response = requests.get(api_url)
                 bot.reply_to(message, transliterated_text)
             else:
                 # Transliterate the message text to Armenian
                 transliterated_text = translit(message.text, "hy")
+                api_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={channel_username}&text={transliterated_text}"
+                # Send the request
+                response = requests.get(api_url)
                 bot.reply_to(message, transliterated_text)
 
     except Exception as e:
         logger.error(f"Error occurred: {e}")
+        api_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={channel_username}&text=An unexpected error occurred. Please try again later."
+        # Send the request
+        response = requests.get(api_url)
         bot.reply_to(message, "An unexpected error occurred. Please try again later.")
 
 
