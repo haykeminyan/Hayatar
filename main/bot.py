@@ -91,6 +91,8 @@ def stop_bot(message):
     # Send the request
     response = requests.get(api_url)
     bot.reply_to(message, "Bot is stopping. Կեցցե Հայաստան!")
+    bot.reply_to(message, "Support me:")
+    bot.reply_to(message, "https://buymeacoffee.com/haykeminyan")
     # Stop polling for messages
     bot.stop_polling()
     # Exit the program
