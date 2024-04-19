@@ -283,7 +283,7 @@ def handle_armenian_latin_to_armenian(message):
         or message.text.startswith("rus")
     )
 )
-def handle_arm_command(message):
+def handle_rus_command(message):
     global current_mode
     # Set the current mode to Armenian Latin to Armenian
     current_mode = "rus"
