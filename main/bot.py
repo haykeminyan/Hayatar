@@ -10,8 +10,8 @@ from telebot import types
 from transliterate import translit
 
 # Get the bot token and weather API key from environment variables
-BOT_TOKEN = "6425359689:AAFlmH2c6nma0zvVbr4ABCPgRVoQcGS40hk"
-WEATHER_API_KEY = "3171b2c37c2a09802dd0b45d114c4d2a"
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+WEATHER_API_KEY = os.environ.get("WEATHER_API_KEY")  # Weather API key
 
 # Create a telebot instance
 bot = telebot.TeleBot(BOT_TOKEN)
@@ -32,7 +32,11 @@ armenian_cities = [
     "Gyumri",
     "Vanadzor",
     "Stepanakert",
+    "Charbagh",
+    "Vedi",
+    "Ashtarak",
     "Shushi",
+    "Karvachar",
     "Martuni",
     "Askeran",
     "Ivanyan",
@@ -51,9 +55,43 @@ armenian_cities = [
     "Charentsavan",
     "Sevan",
     "Gavar",
+    "Vardenis",
+    "baku",
+    "istanbul"
     # Add more cities as needed
 ]
-channel_username = "@ArmenoScript"
+
+# Global variable to track current mode
+current_mode = None
+# Fetch the bot's username
+bot_info = bot.get_me()
+bot_username = bot_info.username  # Store the bot's username
+
+
+available_commands = [
+    "/start - Start the bot and display the main menu",
+    "/arm - Transliterate Armenian Latin to Armenian",
+    "/rus - Translate Russian to Armenian",
+    "/weather - Get weather information for a city",
+    "/info - Get information about me :=)"
+    # Add more commands here
+]
+
+# Function to handle mentions of the bot
+@bot.channel_post_handler(
+    func=lambda message: message.entities
+    and any(
+        entity.type == "mention"
+        and message.text[entity.offset : entity.offset + entity.length]
+        == f"@{bot_username}"
+        for entity in message.entities
+    )
+)
+def handle_mention(message):
+    # Respond with a list of available commands
+    bot.send_message(
+        message.chat.id, "Available commands:\n" + "\n".join(available_commands)
+    )
 
 
 # Function to create a menu using ReplyKeyboardMarkup
@@ -62,9 +100,13 @@ def create_inline_menu():
     markup = types.InlineKeyboardMarkup()
 
     # Add buttons to the markup
-    button1 = types.InlineKeyboardButton(text="Armenian Latin => Armenian", callback_data="armenian_latin")
-    button2 = types.InlineKeyboardButton(text="Russian => Armenian", callback_data="russian_armenian")
-    button3 = types.InlineKeyboardButton(text="/weather", callback_data="weather")
+    button1 = types.InlineKeyboardButton(
+        text="Armenian Latin => Armenian", callback_data="armenian_latin"
+    )
+    button2 = types.InlineKeyboardButton(
+        text="Russian => Armenian", callback_data="russian_armenian"
+    )
+    button3 = types.InlineKeyboardButton(text="Check Weather", callback_data="weather")
 
     # Add buttons to the markup
     markup.add(button1)
@@ -85,7 +127,15 @@ def create_cities_menu():
 
 
 # Command handler for /start
-@bot.channel_post_handler(commands=["start"])
+@bot.channel_post_handler(
+    func=lambda message: message.text
+    and (
+        message.text.startswith("@HayatarBot /start")
+        or message.text.startswith("@HayatarBot start")
+        or message.text.startswith("/start")
+        or message.text.startswith("start")
+    )
+)
 def start_bot(message):
     menu = create_inline_menu()
     # Send a welcome message with the menu options
@@ -93,13 +143,38 @@ def start_bot(message):
     bot.send_message(message.chat.id, "Please choose an option:", reply_markup=menu)
 
 
+@bot.channel_post_handler(
+    func=lambda message: message.text
+    and (
+        message.text.startswith("@HayatarBot /info")
+        or message.text.startswith("@HayatarBot info")
+        or message.text.startswith("/info")
+        or message.text.startswith("info")
+    )
+)
+def info_bot(message):
+    # Send a welcome message with the menu options
+    # Build the API URL
+    bot.send_message(
+        message.chat.id,
+        "Check out this professional profile on LinkedIn: https://www.linkedin.com/in/haykeminyan/",
+    )
+    bot.send_message(message.chat.id, "Support me:")
+    bot.send_message(message.chat.id, "https://buymeacoffee.com/haykeminyan")
+
 
 # Command handler for /stop
-@bot.channel_post_handler(commands=["stop"])
+@bot.channel_post_handler(
+    func=lambda message: message.text
+    and (
+        message.text.startswith("@HayatarBot /stop")
+        or message.text.startswith("@HayatarBot stop")
+        or message.text.startswith("/stop")
+        or message.text.startswith("stop")
+    )
+)
 def stop_bot(message):
     bot.reply_to(message, "Bot is stopping. Կեցցե Հայաստան!")
-    bot.reply_to(message, "Support me:")
-    bot.reply_to(message, "https://buymeacoffee.com/haykeminyan")
     # Stop polling for messages
     bot.stop_polling()
     # Exit the program
@@ -107,7 +182,15 @@ def stop_bot(message):
 
 
 # Command handler for /weather
-@bot.channel_post_handler(commands=["weather"])
+@bot.channel_post_handler(
+    func=lambda message: message.text
+    and (
+        message.text.startswith("@HayatarBot /weather")
+        or message.text.startswith("@HayatarBot weather")
+        or message.text.startswith("/weather")
+        or message.text.startswith("weather")
+    )
+)
 def show_weather_options(message):
     # Create the menu for cities
     cities_menu = create_cities_menu()
@@ -117,56 +200,150 @@ def show_weather_options(message):
 # Handle callback queries from inline buttons
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback_query(call):
+    global current_mode
     try:
         if call.data == "armenian_latin":
-            bot.answer_callback_query(call.id, text="Please send the message you want to transliterate from Armenian Latin to Armenian.")
-            @bot.channel_post_handler(func=lambda message: True)
-            def handle_message(message):
-                # Transliterate the message text to Armenian
-                transliterated_text = translit(message.text, "hy")
-                bot.reply_to(message, text=transliterated_text)
+            current_mode = "armenian_latin"
+            bot.answer_callback_query(
+                call.id,
+                text="Please send the message you want to transliterate from Armenian Latin to Armenian.",
+            )
 
             # Add logic for Armenian Latin => Armenian conversion
         elif call.data == "russian_armenian":
-            bot.answer_callback_query(call.id, text="Please send the message you want to translate from Russian to Armenian.")
-            @bot.channel_post_handler(func=lambda message: True)
-            def handle_message(message):
-                # Translate the message text from Russian to Armenian
-                translator = Translator()
-                transliterated_text = translator.translate(message.text, dest="hy").text
-                bot.reply_to(message, text=transliterated_text)
+            current_mode = "russian_armenian"
+            bot.answer_callback_query(
+                call.id,
+                text="Please send the message you want to translate from Russian to Armenian.",
+            )
             # Add logic for Russian => Armenian translation
+
         elif call.data == "weather":
-            # Provide the list of cities for weather info
-            cities_menu = create_cities_menu()
+            current_mode = "weather"
             bot.answer_callback_query(call.id, text="Please choose a city:")
-
-            @bot.channel_post_handler(func=lambda message: True)
-            def handle_message(message):
-                logger.info(message.text)
-                # Fetch and respond with the current weather data for the chosen city
-                city = message.text
-                weather_url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API_KEY}&units=metric"
-                response = requests.get(weather_url)
-
-                if response.status_code == 200:
-                    data = response.json()
-                    weather_description = data["weather"][0]["description"]
-                    temperature = data["main"]["temp"]
-                    weather_response = (
-                        f"The current weather in {city}:\n"
-                        f"Weather: {weather_description.capitalize()}\n"
-                        f"Temperature: {temperature}°C"
-                    )
-                    bot.reply_to(message, text=weather_response)
-                else:
-                    bot.reply_to(message, text=f'Can not find {message.text}')
+            cities_menu = create_cities_menu()
+            bot.send_message(
+                call.message.chat.id, "Please choose a city:", reply_markup=cities_menu
+            )
+        else:
+            # The user has selected a city
+            current_mode = "weather"
+            selected_city = call.data
+            handle_weather(selected_city, call.message.chat.id)
 
     except Exception as e:
+        logger.error(f"Error occurred: {e}")
+        bot.send_message(
+            call.message.chat.id,
+            "An unexpected error occurred. Please execute /stop and /start.",
+        )
+
+
+# Handle /arm command
+@bot.channel_post_handler(
+    func=lambda message: message.text
+    and (
+        message.text.startswith("@HayatarBot /arm")
+        or message.text.startswith("@HayatarBot arm")
+        or message.text.startswith("/arm")
+        or message.text.startswith("arm")
+    )
+)
+def handle_arm_command(message):
+    global current_mode
+    # Set the current mode to Armenian Latin to Armenian
+    current_mode = "arm"
+    # Prompt the user to send a message for transliteration
+    bot.send_message(
+        message.chat.id,
+        "Please send the message you want to transliterate from Armenian Latin to Armenian.",
+    )
+
+
+# Function to handle Armenian Latin => Armenian transliteration
+@bot.channel_post_handler(func=lambda message: current_mode == "arm")
+def handle_armenian_latin_to_armenian(message):
+    try:
+        # Perform transliteration from Armenian Latin to Armenian
+        transliterated_text = translit(message.text, "hy")
+        # Reply with the transliterated text
+        bot.reply_to(message, text=transliterated_text)
+    except Exception as e:
+        # Handle errors and send an error message
         logger.error(f"Error occurred: {e}")
         bot.reply_to(message, "An unexpected error occurred. Please try again later.")
 
 
+@bot.channel_post_handler(
+    func=lambda message: message.text
+    and (
+        message.text.startswith("@HayatarBot /rus")
+        or message.text.startswith("@HayatarBot rus")
+        or message.text.startswith("/rus")
+        or message.text.startswith("rus")
+    )
+)
+def handle_arm_command(message):
+    global current_mode
+    # Set the current mode to Armenian Latin to Armenian
+    current_mode = "rus"
+    # Prompt the user to send a message for transliteration
+    bot.send_message(
+        message.chat.id,
+        "Please send the message you want to transliterate from Russian to Armenian.",
+    )
+
+
+# Function to handle Armenian Latin => Armenian transliteration
+@bot.channel_post_handler(func=lambda message: current_mode == "rus")
+def handle_russian_to_armenian(message):
+    try:
+        translator = Translator()
+        translated_text = translator.translate(message.text, dest="hy").text
+        bot.reply_to(message, text=translated_text)
+    except Exception as e:
+        # Handle errors and send an error message
+        logger.error(f"Error occurred: {e}")
+        bot.reply_to(message, "An unexpected error occurred. Please try again later.")
+
+
+@bot.channel_post_handler(func=lambda message: True)
+def handle_message(message):
+    global current_mode
+    try:
+        if current_mode == "armenian_latin":
+            transliterated_text = translit(message.text, "hy")
+            bot.reply_to(message, text=transliterated_text)
+        elif current_mode == "russian_armenian":
+            translator = Translator()
+            translated_text = translator.translate(message.text, dest="hy").text
+            bot.reply_to(message, text=translated_text)
+    except Exception as e:
+        logger.error(e)
+
+
+@bot.channel_post_handler(func=lambda message: True)
+def handle_weather(city, chat_id):
+    weather_url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API_KEY}&units=metric"
+    response = requests.get(weather_url)
+    if response.status_code == 200 and city.lower() not in ["baku", "istanbul"]:
+        data = response.json()
+        weather_description = data["weather"][0]["description"]
+        temperature = data["main"]["temp"]
+        weather_response = (
+            f"The current weather in {city}:\n"
+            f"Weather: {weather_description.capitalize()}\n"
+            f"Temperature: {temperature}°C"
+        )
+        bot.send_message(chat_id, text=weather_response)
+    elif city.lower() == "baku":
+        bot.send_message(chat_id, text=f"Bakunakert is loading ...")
+        bot.send_message(chat_id, text=f"Glory to Armenia!")
+    elif city.lower() == "istanbul":
+        bot.send_message(chat_id, text=f"Constantinople is loading ...")
+        bot.send_message(chat_id, text=f"Glory to Armenia!")
+    else:
+        bot.send_message(chat_id, text=f"Cannot find weather information for {city}.")
 
 
 # Start polling for messages
