@@ -10,8 +10,8 @@ from telebot import types
 from transliterate import translit
 
 # Get the bot token and weather API key from environment variables
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-WEATHER_API_KEY = os.environ.get("WEATHER_API_KEY")  # Weather API key
+BOT_TOKEN = "6425359689:AAFlmH2c6nma0zvVbr4ABCPgRVoQcGS40hk"
+WEATHER_API_KEY = "3171b2c37c2a09802dd0b45d114c4d2a"
 
 # Create a telebot instance
 bot = telebot.TeleBot(BOT_TOKEN)
