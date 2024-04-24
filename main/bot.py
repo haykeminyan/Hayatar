@@ -5,13 +5,14 @@ import sys
 
 import requests
 import telebot
+from cencor import censor_profanity
 from pygoogletranslation import Translator
 from telebot import types
 from transliterate import translit
 
 # Get the bot token and weather API key from environment variables
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-WEATHER_API_KEY = os.environ.get("WEATHER_API_KEY")  # Weather API key
+BOT_TOKEN = "6425359689:AAFlmH2c6nma0zvVbr4ABCPgRVoQcGS40hk"
+WEATHER_API_KEY = "3171b2c37c2a09802dd0b45d114c4d2a"
 
 # Create a telebot instance
 bot = telebot.TeleBot(BOT_TOKEN)
@@ -127,13 +128,11 @@ def create_cities_menu():
 
 
 # Command handler for /start
-@bot.channel_post_handler(
+@bot.message_handler(
     func=lambda message: message.text
     and (
-        message.text.startswith("@HayatarBot /start")
-        or message.text.startswith("@HayatarBot start")
+        message.text.startswith("/start@HayatarBot")
         or message.text.startswith("/start")
-        or message.text.startswith("start")
     )
 )
 def start_bot(message):
@@ -143,13 +142,10 @@ def start_bot(message):
     bot.send_message(message.chat.id, "Please choose an option:", reply_markup=menu)
 
 
-@bot.channel_post_handler(
+@bot.message_handler(
     func=lambda message: message.text
     and (
-        message.text.startswith("@HayatarBot /info")
-        or message.text.startswith("@HayatarBot info")
-        or message.text.startswith("/info")
-        or message.text.startswith("info")
+        message.text.startswith("/info@HayatarBot") or message.text.startswith("/info")
     )
 )
 def info_bot(message):
@@ -164,13 +160,10 @@ def info_bot(message):
 
 
 # Command handler for /stop
-@bot.channel_post_handler(
+@bot.message_handler(
     func=lambda message: message.text
     and (
-        message.text.startswith("@HayatarBot /stop")
-        or message.text.startswith("@HayatarBot stop")
-        or message.text.startswith("/stop")
-        or message.text.startswith("stop")
+        message.text.startswith("/stop@HayatarBot") or message.text.startswith("/stop")
     )
 )
 def stop_bot(message):
@@ -182,13 +175,11 @@ def stop_bot(message):
 
 
 # Command handler for /weather
-@bot.channel_post_handler(
+@bot.message_handler(
     func=lambda message: message.text
     and (
-        message.text.startswith("@HayatarBot /weather")
-        or message.text.startswith("@HayatarBot weather")
+        message.text.startswith("/weather@HayatarBot")
         or message.text.startswith("/weather")
-        or message.text.startswith("weather")
     )
 )
 def show_weather_options(message):
@@ -240,14 +231,9 @@ def handle_callback_query(call):
 
 
 # Handle /arm command
-@bot.channel_post_handler(
+@bot.message_handler(
     func=lambda message: message.text
-    and (
-        message.text.startswith("@HayatarBot /arm")
-        or message.text.startswith("@HayatarBot arm")
-        or message.text.startswith("/arm")
-        or message.text.startswith("arm")
-    )
+    and (message.text.startswith("/arm@HayatarBot") or message.text.startswith("/arm"))
 )
 def handle_arm_command(message):
     global current_mode
@@ -261,10 +247,10 @@ def handle_arm_command(message):
 
 
 # Function to handle Armenian Latin => Armenian transliteration
-@bot.channel_post_handler(func=lambda message: current_mode == "arm")
+@bot.message_handler(func=lambda message: current_mode == "arm")
 def handle_armenian_latin_to_armenian(message):
     try:
-        # Perform transliteration from Armenian Latin to Armenian
+        filtering_messages(message)
         transliterated_text = translit(message.text, "hy")
         # Reply with the transliterated text
         bot.reply_to(message, text=transliterated_text)
@@ -274,14 +260,9 @@ def handle_armenian_latin_to_armenian(message):
         bot.reply_to(message, "An unexpected error occurred. Please try again later.")
 
 
-@bot.channel_post_handler(
+@bot.message_handler(
     func=lambda message: message.text
-    and (
-        message.text.startswith("@HayatarBot /rus")
-        or message.text.startswith("@HayatarBot rus")
-        or message.text.startswith("/rus")
-        or message.text.startswith("rus")
-    )
+    and (message.text.startswith("/rus@HayatarBot") or message.text.startswith("/rus"))
 )
 def handle_rus_command(message):
     global current_mode
@@ -295,8 +276,9 @@ def handle_rus_command(message):
 
 
 # Function to handle Armenian Latin => Armenian transliteration
-@bot.channel_post_handler(func=lambda message: current_mode == "rus")
+@bot.message_handler(func=lambda message: current_mode == "rus")
 def handle_russian_to_armenian(message):
+    filtering_messages(message)
     try:
         translator = Translator()
         translated_text = translator.translate(message.text, dest="hy").text
@@ -307,8 +289,21 @@ def handle_russian_to_armenian(message):
         bot.reply_to(message, "An unexpected error occurred. Please try again later.")
 
 
-@bot.channel_post_handler(func=lambda message: True)
+def filtering_messages(message):
+    username = message.from_user.username
+    if "*" in censor_profanity(message.text):
+        command = (
+            f'@{username} -- "this message contains bad words and was deleted by bot"'
+        )
+        bot.send_message(chat_id=message.chat.id, text=command)
+        bot.delete_message(chat_id=message.chat.id, message_id=message.id)
+
+
+@bot.message_handler(func=lambda message: True)
 def handle_message(message):
+
+    filtering_messages(message)
+
     global current_mode
     try:
         if current_mode == "armenian_latin":
@@ -322,7 +317,7 @@ def handle_message(message):
         logger.error(e)
 
 
-@bot.channel_post_handler(func=lambda message: True)
+@bot.message_handler(func=lambda message: True)
 def handle_weather(city, chat_id):
     weather_url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API_KEY}&units=metric"
     response = requests.get(weather_url)
