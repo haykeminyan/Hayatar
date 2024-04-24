@@ -9,6 +9,7 @@ from cencor import censor_profanity
 from pygoogletranslation import Translator
 from telebot import types
 from transliterate import translit
+from database import handle_user_registration
 
 # Get the bot token and weather API key from environment variables
 BOT_TOKEN = "6425359689:AAFlmH2c6nma0zvVbr4ABCPgRVoQcGS40hk"
@@ -139,6 +140,8 @@ def start_bot(message):
     menu = create_inline_menu()
     # Send a welcome message with the menu options
     # Build the API URL
+    handle_user_registration(user_id=message.from_user.id, username=message.from_user.username,
+                             chat_id=message.chat.id, karma=0)
     bot.send_message(message.chat.id, "Please choose an option:", reply_markup=menu)
 
 

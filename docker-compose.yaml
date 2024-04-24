@@ -2,16 +2,32 @@ version: '3.8'
 
 services:
   bot:
-    # Use the Dockerfile in the current directory
     build: .
-    # Define environment variables for the bot
     environment:
       BOT_TOKEN: "6425359689:AAFlmH2c6nma0zvVbr4ABCPgRVoQcGS40hk"
-    # Map the bot's exposed port to the host's port
+      MONGODB_URL: "mongodb://mongodb:27017/node-boilerplate"
     ports:
       - "8543:443"
     volumes:
-    - ./main:/app/main
-    # Restart the container automatically in case of failure
+      - ./main:/app/main
     restart: always
     command: bash -c "python /app/main/bot.py"
+    depends_on:
+      - mongodb
+    networks:
+      - my-network
+
+  mongodb:
+    image: mongo:latest
+    restart: always
+    volumes:
+      - dbdata6:/data/db
+    networks:
+      - my-network
+
+volumes:
+  dbdata6:
+
+networks:
+  my-network:
+    driver: bridge
