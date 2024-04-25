@@ -301,7 +301,7 @@ def karma_plus(message):
         if message.from_user.is_bot:
             increase_user_karma(user_id)
             bot.send_message(chat_id=message.chat.id,
-                             text=f"Congratulations! @{target_username} karma is increased! You karma now is {get_user(user_id)['karma']}")
+                             text=f"Congratulations! {target_username} karma is increased! You karma now is {get_user(user_id)['karma']}")
         else:
             bot.send_message(chat_id=message.chat.id,
                              text=f'@{username} you are not allowed to change users karma! Vochxar!')
@@ -324,7 +324,7 @@ def karma_minus(message):
         if message.from_user.is_bot:
             decrease_user_karma(user_id)
             bot.send_message(chat_id=message.chat.id,
-                             text=f"Oops! @{target_username} karma is decreased! You karma now is {get_user(user_id)['karma']}")
+                             text=f"Oops! {target_username} karma is decreased! You karma now is {get_user(user_id)['karma']}")
         else:
             bot.send_message(chat_id=message.chat.id,
                              text=f'@{username} you are not allowed to change users karma! Vochxar!')
