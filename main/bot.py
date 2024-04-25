@@ -9,7 +9,7 @@ from cencor import censor_profanity
 from pygoogletranslation import Translator
 from telebot import types
 from transliterate import translit
-from database import handle_user_registration
+from database import handle_user_registration, get_user, decrease_user_karma, show_users
 
 # Get the bot token and weather API key from environment variables
 BOT_TOKEN = "6425359689:AAFlmH2c6nma0zvVbr4ABCPgRVoQcGS40hk"
@@ -278,6 +278,14 @@ def handle_rus_command(message):
     )
 
 
+@bot.message_handler(
+    func=lambda message: message.text
+    and (message.text.startswith("/users@HayatarBot") or message.text.startswith("/users"))
+)
+def handle_users_table(message):
+    bot.send_message(chat_id=message.chat.id, text=show_users(), parse_mode="MarkdownV2")
+
+
 # Function to handle Armenian Latin => Armenian transliteration
 @bot.message_handler(func=lambda message: current_mode == "rus")
 def handle_russian_to_armenian(message):
@@ -295,10 +303,15 @@ def handle_russian_to_armenian(message):
 def filtering_messages(message):
     username = message.from_user.username
     if "*" in censor_profanity(message.text):
+        username_id = message.from_user.id
+        decrease_user_karma(username_id)
+        current_user = get_user(username_id)
         command = (
             f'@{username} -- "this message contains bad words and was deleted by bot"'
         )
+        command2 = (f"@{username} reputation was downgraded. @{username} reputation is {current_user['karma']}")
         bot.send_message(chat_id=message.chat.id, text=command)
+        bot.send_message(chat_id=message.chat.id, text=command2)
         bot.delete_message(chat_id=message.chat.id, message_id=message.id)
 
 
