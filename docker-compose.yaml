@@ -11,7 +11,7 @@ services:
     volumes:
       - ./main:/app/main
     restart: always
-    command: bash -c "python /app/main/bot.py"
+    command: python /app/main/run_bot.py
     depends_on:
       - mongodb
     networks:

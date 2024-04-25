@@ -9,7 +9,7 @@ from cencor import censor_profanity
 from pygoogletranslation import Translator
 from telebot import types
 from transliterate import translit
-from database import handle_user_registration, get_user, decrease_user_karma, show_users
+from database import handle_user_registration, get_user, decrease_user_karma, show_users, increase_user_karma
 
 # Get the bot token and weather API key from environment variables
 BOT_TOKEN = "6425359689:AAFlmH2c6nma0zvVbr4ABCPgRVoQcGS40hk"
@@ -283,10 +283,38 @@ def handle_rus_command(message):
     and (message.text.startswith("/users@HayatarBot") or message.text.startswith("/users"))
 )
 def handle_users_table(message):
-    bot.send_message(chat_id=message.chat.id, text=show_users(), parse_mode="MarkdownV2")
+    bot.send_message(chat_id=message.chat.id, text=show_users())
 
 
-# Function to handle Armenian Latin => Armenian transliteration
+@bot.message_handler(
+    func=lambda message: message.text
+    and (message.text.startswith("/karma_plus@HayatarBot") or message.text.startswith("/karma_plus"))
+)
+def karma_plus(message):
+    username = message.from_user.username
+    user_id = message.from_user.id
+    if message.from_user.is_bot:
+        increase_user_karma(user_id)
+        bot.send_message(chat_id=message.chat.id, text=f"Congratulations! @{username} karma is increased! You karma now is {get_user(user_id)['karma']}")
+    else:
+        bot.send_message(chat_id=message.chat.id, text=f'@{username} you are not allowed to change users karma! Vochxar!')
+
+
+@bot.message_handler(
+    func=lambda message: message.text
+    and (message.text.startswith("/karma_minus@HayatarBot") or message.text.startswith("/karma_minus"))
+)
+def karma_minus(message):
+    username = message.from_user.username
+    user_id = message.from_user.id
+    if message.from_user.is_bot:
+        decrease_user_karma(user_id)
+        bot.send_message(chat_id=message.chat.id, text=f"Oops! @{username} karma is decreased! You karma now is {get_user(user_id)['karma']}")
+    else:
+        bot.send_message(chat_id=message.chat.id, text=f'@{username} you are not allowed to change users karma! Vochxar!')
+
+
+# Function to handle Armenian Latin => Armenian transliterationd
 @bot.message_handler(func=lambda message: current_mode == "rus")
 def handle_russian_to_armenian(message):
     filtering_messages(message)
@@ -317,7 +345,7 @@ def filtering_messages(message):
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
-
+    logger.info('filtering'*10)
     filtering_messages(message)
 
     global current_mode
