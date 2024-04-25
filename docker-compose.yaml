@@ -11,6 +11,7 @@ services:
     volumes:
       - ./main:/app/main
     restart: always
+    # run_bot for locally
     command: python /app/main/bot.py
     depends_on:
       - mongodb

@@ -9,7 +9,7 @@ from cencor import censor_profanity
 from pygoogletranslation import Translator
 from telebot import types
 from transliterate import translit
-from database import handle_user_registration, get_user, decrease_user_karma, show_users, increase_user_karma
+from database import handle_user_registration, get_user, decrease_user_karma, show_users, increase_user_karma, get_user_username
 
 # Get the bot token and weather API key from environment variables
 BOT_TOKEN = "6425359689:AAFlmH2c6nma0zvVbr4ABCPgRVoQcGS40hk"
@@ -292,12 +292,22 @@ def handle_users_table(message):
 )
 def karma_plus(message):
     username = message.from_user.username
-    user_id = message.from_user.id
-    if message.from_user.is_bot:
-        increase_user_karma(user_id)
-        bot.send_message(chat_id=message.chat.id, text=f"Congratulations! @{username} karma is increased! You karma now is {get_user(user_id)['karma']}")
+    parts = message.text.split()
+
+    if len(parts) == 2:
+        target_username = parts[1]
+        logger.info(target_username)
+        user_id = get_user_username(target_username.replace('@', ''))['user_id']
+        if message.from_user.is_bot:
+            increase_user_karma(user_id)
+            bot.send_message(chat_id=message.chat.id,
+                             text=f"Congratulations! @{target_username} karma is increased! You karma now is {get_user(user_id)['karma']}")
+        else:
+            bot.send_message(chat_id=message.chat.id,
+                             text=f'@{username} you are not allowed to change users karma! Vochxar!')
     else:
-        bot.send_message(chat_id=message.chat.id, text=f'@{username} you are not allowed to change users karma! Vochxar!')
+        bot.send_message(chat_id=message.chat.id,
+                         text=f"Please write command correct /karma_plus@HaytarBot @username")
 
 
 @bot.message_handler(
@@ -306,12 +316,21 @@ def karma_plus(message):
 )
 def karma_minus(message):
     username = message.from_user.username
-    user_id = message.from_user.id
-    if message.from_user.is_bot:
-        decrease_user_karma(user_id)
-        bot.send_message(chat_id=message.chat.id, text=f"Oops! @{username} karma is decreased! You karma now is {get_user(user_id)['karma']}")
+    parts = message.text.split()
+
+    if len(parts) == 2:
+        target_username = parts[1]
+        user_id = get_user_username(target_username.replace('@', ''))['user_id']
+        if message.from_user.is_bot:
+            decrease_user_karma(user_id)
+            bot.send_message(chat_id=message.chat.id,
+                             text=f"Oops! @{target_username} karma is decreased! You karma now is {get_user(user_id)['karma']}")
+        else:
+            bot.send_message(chat_id=message.chat.id,
+                             text=f'@{username} you are not allowed to change users karma! Vochxar!')
     else:
-        bot.send_message(chat_id=message.chat.id, text=f'@{username} you are not allowed to change users karma! Vochxar!')
+        bot.send_message(chat_id=message.chat.id,
+                         text=f"Please write command correct /karma_plus@HaytarBot @username")
 
 
 # Function to handle Armenian Latin => Armenian transliterationd

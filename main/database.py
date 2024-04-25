@@ -87,6 +87,10 @@ def get_user(user_id):
     return users_collection.find_one({'user_id': user_id})
 
 
+def get_user_username(username):
+    return users_collection.find_one({'username': username})
+
+
 def show_users():
     cursor = users_collection.find({}, {'_id': 0, 'username': 1, 'karma': 1, 'date_joined': 1})
     users_data = list(cursor)  # Convert cursor to a list of dictionaries
