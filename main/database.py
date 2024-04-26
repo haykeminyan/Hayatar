@@ -124,9 +124,16 @@ def show_users():
     return table
 
 
-def check_if_user_registrated(message):
+def check_if_user_registrated(message, bot):
     if not get_user(message.from_user.id):
-        bot.send_message(chat_id=message.chat.id, text="Welcome to @ArmenoScriptChat!")
+        bot.send_message(chat_id=message.chat.id, text=f"Welcome @{message.from_user.username} to @ArmenoScriptChat! Please check our rules /rules_en")
+        with open('/app/main/rules/rules_en.md', 'r', encoding='utf-8') as file:
+            markdown_content = file.read()
+
+        # Send the content of the file as a message
+        bot.send_message(chat_id=message.chat.id,
+                         text=markdown_content,
+                         parse_mode="Markdown")
         handle_user_registration(user_id=message.from_user.id, username=message.from_user.username,
                                  chat_id=message.chat.id, karma=0)
 

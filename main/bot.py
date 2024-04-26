@@ -11,7 +11,7 @@ from cencor import censor_profanity
 from pygoogletranslation import Translator
 from telebot import types
 from transliterate import translit
-from database import handle_user_registration, get_user, decrease_user_karma, show_users, increase_user_karma, get_user_username, check_if_user_registrated, kick_user_to_hell
+from database import  get_user, decrease_user_karma, show_users, increase_user_karma, get_user_username, check_if_user_registrated, kick_user_to_hell
 
 # Get the bot token and weather API key from environment variables
 BOT_TOKEN = "6425359689:AAFlmH2c6nma0zvVbr4ABCPgRVoQcGS40hk"
@@ -73,12 +73,19 @@ bot_username = bot_info.username  # Store the bot's username
 
 
 available_commands = [
-    "/start - Start the bot and display the main menu",
-    "/arm - Transliterate Armenian Latin to Armenian",
-    "/rus - Translate Russian to Armenian",
-    "/weather - Get weather information for a city",
-    "/info - Get information about me :=)"
-    # Add more commands here
+    "/start - Starts the bot and displays the main menu with available options",
+    "/weather - Allows users to check the weather information for different cities",
+    "/arm - Transliterates Armenian Latin text to Armenian script",
+    "/rus - Translates Russian text to Armenian",
+    "/rules_en - Rules in chat in English",
+    "/rules_arm - Rules in chat in Armenian",
+    "/rules_es - Rules in chat in Spanish",
+    "/rules_ru - Rules in chat in Russian",
+    "/users - Displays a table of registered users.",
+    "/karma_plus - Increases the karma of a specified user (Admin-only)",
+    "/karma_minus - Decreases the karma of a specified user (Admin-only)",
+    "Mentions - When the bot is mentioned, it responds with a list of available commands",
+    "/info - Provides information about the developer and his bio",
 ]
 
 # Function to handle mentions of the bot
@@ -143,6 +150,76 @@ def start_bot(message):
     # Send a welcome message with the menu options
     # Build the API URL
     bot.send_message(message.chat.id, "Please choose an option:", reply_markup=menu)
+
+
+@bot.message_handler(
+    func=lambda message: message.text
+    and (
+        message.text.startswith("/rules_en@HayatarBot")
+        or message.text.startswith("/rules_en")
+    )
+)
+def rules_en(message):
+    # Read the content of the Markdown file
+    with open('/app/main/rules/rules_en.md', 'r', encoding='utf-8') as file:
+        markdown_content = file.read()
+
+    # Send the content of the file as a message
+    bot.send_message(chat_id=message.chat.id,
+                     text=markdown_content,
+                     parse_mode="Markdown")
+
+@bot.message_handler(
+    func=lambda message: message.text
+    and (
+        message.text.startswith("/rules_arm@HayatarBot")
+        or message.text.startswith("/rules_arm")
+    )
+)
+def rules_arm(message):
+    # Read the content of the Markdown file
+    with open('/app/main/rules/rules_arm.md', 'r', encoding='utf-8') as file:
+        markdown_content = file.read()
+
+    # Send the content of the file as a message
+    bot.send_message(chat_id=message.chat.id,
+                     text=markdown_content,
+                     parse_mode="Markdown")
+
+@bot.message_handler(
+    func=lambda message: message.text
+    and (
+        message.text.startswith("/rules_es@HayatarBot")
+        or message.text.startswith("/rules_es")
+    )
+)
+def rules_es(message):
+    # Read the content of the Markdown file
+    with open('/app/main/rules/rules_es.md', 'r', encoding='utf-8') as file:
+        markdown_content = file.read()
+
+    # Send the content of the file as a message
+    bot.send_message(chat_id=message.chat.id,
+                     text=markdown_content,
+                     parse_mode="Markdown")
+
+
+@bot.message_handler(
+    func=lambda message: message.text
+    and (
+        message.text.startswith("/rules_ru@HayatarBot")
+        or message.text.startswith("/rules_ru")
+    )
+)
+def rules_ru(message):
+    # Read the content of the Markdown file
+    with open('/app/main/rules/rules_ru.md', 'r', encoding='utf-8') as file:
+        markdown_content = file.read()
+
+    # Send the content of the file as a message
+    bot.send_message(chat_id=message.chat.id,
+                     text=markdown_content,
+                     parse_mode="Markdown")
 
 
 @bot.message_handler(
@@ -348,7 +425,7 @@ def handle_russian_to_armenian(message):
 
 
 def filtering_messages(message):
-    check_if_user_registrated(message)
+    check_if_user_registrated(message, bot)
     if not message.from_user.is_bot:
         flood_detection(message)
     username = message.from_user.username
@@ -429,11 +506,12 @@ def flood_detection(message):
         # If the user_id doesn't exist in the detector dictionary, create a new entry with the timestamp
         detector[user_id] = [timestamp]
 
-    for _, timestamps in detector.items():
+    for potential_user_id, timestamps in detector.items():
         for i in range(len(timestamps) - 1):
             if abs(timestamps[i + 1] - timestamps[i]) <= 3:
-                bot.send_message(chat_id=message.chat.id, text="You have been muted for a 30 seconds. Գնացեք և հանգստացեք!")
-                bot.restrict_chat_member(message.chat.id, message.from_user.id, until_date=until_timestamp)
+                username = get_user(potential_user_id)['username']
+                bot.send_message(chat_id=message.chat.id, text=f"You @{username} have been muted for a 30 seconds. Գնացեք և հանգստացեք!")
+                bot.restrict_chat_member(message.chat.id, potential_user_id, until_date=until_timestamp)
                 detector.clear()
 
 
