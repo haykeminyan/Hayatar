@@ -1,20 +1,22 @@
+import datetime
 import logging
 import os
 import re
 import sys
-
+import pytz
 import requests
+from datetime import timedelta
 import telebot
 from cencor import censor_profanity
 from pygoogletranslation import Translator
 from telebot import types
 from transliterate import translit
-from database import handle_user_registration, get_user, decrease_user_karma, show_users, increase_user_karma, get_user_username
+from database import handle_user_registration, get_user, decrease_user_karma, show_users, increase_user_karma, get_user_username, check_if_user_registrated, kick_user_to_hell
 
 # Get the bot token and weather API key from environment variables
 BOT_TOKEN = "6425359689:AAFlmH2c6nma0zvVbr4ABCPgRVoQcGS40hk"
 WEATHER_API_KEY = "3171b2c37c2a09802dd0b45d114c4d2a"
-
+last_message_time = {}
 # Create a telebot instance
 bot = telebot.TeleBot(BOT_TOKEN)
 
@@ -140,8 +142,6 @@ def start_bot(message):
     menu = create_inline_menu()
     # Send a welcome message with the menu options
     # Build the API URL
-    handle_user_registration(user_id=message.from_user.id, username=message.from_user.username,
-                             chat_id=message.chat.id, karma=0)
     bot.send_message(message.chat.id, "Please choose an option:", reply_markup=menu)
 
 
@@ -348,6 +348,9 @@ def handle_russian_to_armenian(message):
 
 
 def filtering_messages(message):
+    check_if_user_registrated(message)
+    if not message.from_user.is_bot:
+        flood_detection(message)
     username = message.from_user.username
     if "*" in censor_profanity(message.text):
         username_id = message.from_user.id
@@ -360,11 +363,11 @@ def filtering_messages(message):
         bot.send_message(chat_id=message.chat.id, text=command)
         bot.send_message(chat_id=message.chat.id, text=command2)
         bot.delete_message(chat_id=message.chat.id, message_id=message.id)
+        kick_user_to_hell(message, current_user['karma'], bot)
 
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
-    logger.info('filtering'*10)
     filtering_messages(message)
 
     global current_mode
@@ -402,6 +405,36 @@ def handle_weather(city, chat_id):
         bot.send_message(chat_id, text=f"Glory to Armenia!")
     else:
         bot.send_message(chat_id, text=f"Cannot find weather information for {city}.")
+
+
+# logic {'user_id': [timestamp values of date]}
+detector = {}
+
+
+def flood_detection(message):
+    # Get the current time
+    current_time = pytz.timezone('Asia/Yerevan')
+    current_time_yerevan = datetime.datetime.now(current_time)
+    # Calculate the future time when the restriction will be lifted (e.g., 30 seconds from now)
+    until_time = current_time_yerevan + timedelta(seconds=30)
+    # Convert the future time to a Unix timestamp
+    until_timestamp = int(until_time.timestamp())
+    user_id = message.from_user.id
+    timestamp = message.date
+
+    if user_id in detector:
+        # If the user_id already exists in the detector dictionary, append the timestamp to its list
+        detector[user_id].append(timestamp)
+    else:
+        # If the user_id doesn't exist in the detector dictionary, create a new entry with the timestamp
+        detector[user_id] = [timestamp]
+
+    for _, timestamps in detector.items():
+        for i in range(len(timestamps) - 1):
+            if abs(timestamps[i + 1] - timestamps[i]) <= 3:
+                bot.send_message(chat_id=message.chat.id, text="You have been muted for a 30 seconds. Գնացեք և հանգստացեք!")
+                bot.restrict_chat_member(message.chat.id, message.from_user.id, until_date=until_timestamp)
+                detector.clear()
 
 
 # Start polling for messages

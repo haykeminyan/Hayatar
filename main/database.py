@@ -117,10 +117,31 @@ def show_users():
         try:
             table_str = user[0]['emojie'] + '\t'*2 +f"@{user[0]['username']}" + ' '*5 + f"{user[0]['karma']}  karma" + '\n'
         except KeyError:
-            table_str = f"@{user[0]['username']}" + ' ' * 5 + f"{user[0]['karma']}  karma"
+            table_str = f"@{user[0]['username']}" + ' ' * 5 + f"{user[0]['karma']} karma"
         table += '\n' + str(table_str)
 
     table += """  """
     return table
+
+
+def check_if_user_registrated(message):
+    if not get_user(message.from_user.id):
+        bot.send_message(chat_id=message.chat.id, text="Welcome to @ArmenoScriptChat!")
+        handle_user_registration(user_id=message.from_user.id, username=message.from_user.username,
+                                 chat_id=message.chat.id, karma=0)
+
+
+def kick_user_to_hell(message, karma, bot):
+    if karma < -2 and not message.from_user.is_bot:
+        bot.kick_chat_member(
+            chat_id=message.chat.id,
+            user_id=message.from_user.id,
+        )  #
+        user = get_user(user_id=message.from_user.id)
+        logger.info(user)
+        logger.info('!'*100)
+        update_user_karma_in_mongo(user_id=user['user_id'], new_karma=0)
+        # Notify users that the user has been banned
+        bot.send_message(chat_id=message.chat.id, text="User has been banned. Բարի գալուստ գյորբագոր.")
 
 
