@@ -332,6 +332,11 @@ def handle_armenian_latin_to_armenian(message):
     try:
         filtering_messages(message)
         transliterated_text = translit(message.text, "hy")
+        if transliterated_text.lower() != 'օդ':
+            if 'O' in str(transliterated_text) and ('O' != str(transliterated_text)[-1] and 'O' != str(transliterated_text)[0]):
+                transliterated_text = message.text.replace('O', 'Ո')
+            if 'o' in str(transliterated_text) and ('o' != str(transliterated_text)[-1] and 'o' != str(transliterated_text)[0]):
+                transliterated_text = message.text.replace('o', 'ո')
         # Reply with the transliterated text
         bot.reply_to(message, text=transliterated_text)
     except Exception as e:
@@ -451,6 +456,13 @@ def handle_message(message):
     try:
         if current_mode == "armenian_latin":
             transliterated_text = translit(message.text, "hy")
+            if transliterated_text.lower() != 'օդ':
+                if 'O' in str(transliterated_text) and (
+                        'O' != str(transliterated_text)[-1] and 'O' != str(transliterated_text)[0]):
+                    transliterated_text = message.text.replace('O', 'Ո')
+                if 'o' in str(transliterated_text) and (
+                        'o' != str(transliterated_text)[-1] and 'o' != str(transliterated_text)[0]):
+                    transliterated_text = message.text.replace('o', 'ո')
             bot.reply_to(message, text=transliterated_text)
         elif current_mode == "russian_armenian":
             translator = Translator()
