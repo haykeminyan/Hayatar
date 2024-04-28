@@ -28,7 +28,7 @@ def armenian_latinisation(prompt):
 		elif (lst[i] == "b"):  # 2
 			lst[i] = "բ"
 
-		elif (lst[i] == "գg"):  # 3
+		elif (lst[i] == "g"):  # 3
 			lst[i] = "գ"
 
 		elif (lst[i] == "d"):  # 4
@@ -175,10 +175,10 @@ def armenian_latinisation(prompt):
 		elif (lst[i] == "I"):  # 11
 			lst[i] = "Ի"
 
-		elif (lst[i] == "LԼ"):  # 12
+		elif (lst[i] == "L" and lst[i+1] == 'L'):  # 12
 			lst[i] = "Լ"
 
-		elif (lst[i] == "Kh"):  # 13
+		elif (lst[i] == "K" and lst[i+1] == 'h'):  # 13
 			lst[i] = "Խ"
 
 		elif (lst[i] == "K"):  # 15
@@ -187,10 +187,10 @@ def armenian_latinisation(prompt):
 		elif (lst[i] == "H"):  # 16
 			lst[i] = "Հ"
 
-		elif (lst[i] == "Dz"):  # 17
+		elif (lst[i] == "D" and lst[i+1] =='z'):  # 17
 			lst[i] = "Ձ"
 
-		elif (lst[i] == "Gh"):  # 18
+		elif (lst[i] == "G" and lst[i+1]=='h'):  # 18
 			lst[i] = "Ղ"
 
 		elif (lst[i] == "Ch"):  # 19
