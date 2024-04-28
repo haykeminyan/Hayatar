@@ -19,7 +19,7 @@ def armenian_latinisation(prompt):
 
 
 		if (lst[i] == "o" and lst[i+1] == 'd'):  # 39
-			lst[i] = "օդ"
+			lst[i] = "օ"
 		# Lower case letters here.
 
 		elif (lst[i] == "a"):  # 1
