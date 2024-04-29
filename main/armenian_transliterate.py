@@ -10,38 +10,93 @@ def armenian_latinisation(prompt):
 	text = prompt
 	wordChars = list(text)
 
+	logger.info(wordChars)
+
+	if wordChars[0] == 'o' and wordChars[1] == 'd' and len(wordChars) == 2:
+		wordChars = ['օդ']
+
+	elif wordChars[0] == 'k' and wordChars[1] == 'h':
+		wordChars[0] = 'խ'
+		del wordChars[1]
+
+	elif (wordChars[0] == "t" and wordChars[1] == 's'):  # 14
+		wordChars[0] = "ծ"
+		del wordChars[1]
+
+	elif (wordChars[0] == "d" and wordChars[1] == 'z'):  # 17
+		wordChars[0] = "ձ"
+		del wordChars[1]
+
+	elif (wordChars[0] == "g" and wordChars[1] == 'h'):  # 18
+		wordChars[0] = "ղ"
+		del wordChars[1]
+
+	elif (wordChars[0] == "s" and wordChars[1] =='h'):  # 24
+		wordChars[0] = "շ"
+		del wordChars[1]
+
+	elif (wordChars[0] == "c" and wordChars[1] =='h'):  # 26
+		wordChars[0] = "չ"
+		del wordChars[1]
+
+	elif (wordChars[0] == "e" and wordChars[1] =='v'):  # 38
+		wordChars[0] = "և"
+		del wordChars[1]
+
+	elif (wordChars[0] == "s" and wordChars[1] != 't'):  # 30
+		wordChars[0] = "ս"
+		del wordChars[1]
+
+	elif ((wordChars[0] == "v" and wordChars[1] =='o')):  # 25
+		wordChars[0] = "ո"
+		del wordChars[1]
+
+	elif (wordChars[0] == "T" and wordChars[1] != 's'):  # 9
+		wordChars[0] = "Թ"
+		del wordChars[1]
+
+	elif (wordChars[0] == 'T' and wordChars[1] == 's'):
+		wordChars[0] = 'Ծ'
+		del wordChars[1]
+
+	elif (wordChars[0] == "L" and wordChars[1] == 'L'):  # 12
+		wordChars[0] = "Լ"
+		del wordChars[1]
+
+	elif (wordChars[0] == "K" and wordChars[1] == 'h'):  # 13
+		wordChars[0] = "Խ"
+		del wordChars[1]
+
+	elif (wordChars[0] == "D" and wordChars[1] == 'z'):  # 17
+		wordChars[0] = "Ձ"
+		del wordChars[1]
+
+	elif (wordChars[0] == "G" and wordChars[1] == 'h'):  # 18
+		wordChars[0] = "Ղ"
+		del wordChars[1]
+
+	elif (wordChars[0] == "S" and wordChars[1] =='h'):  # 24
+		wordChars[0] = "Շ"
+		del wordChars[1]
+
+	elif (wordChars[0] == "C" and wordChars[1] =='h'):  # 19
+		wordChars[0] = "Ճ"
+		del wordChars[1]
+
+	elif (wordChars[1] == "S" and wordChars[0] != 'T'):  # 30
+		wordChars[0] = "Ս"
+		del wordChars[1]
+
 	for i in range(len(wordChars)):  # Making an array using the string.
 
 		lst.append(wordChars[i])
 
-
 	for i in range(len(wordChars)):  # Finding and changing the letters in the array.
+		logger.error(wordChars[i])
 
-		if (lst[i] == "o" and lst[i+1] == 'd'):  # 39
-			lst[i] = "օ"
-
-		elif (lst[i] == "k" and lst[i+1] == 'h'):  # 13
-			lst[i] = "խ"
-
-		elif (lst[i] == "t" and lst[i+1] == 's'):  # 14
-			lst[i] = "ծ"
-
-		elif (lst[i] == "d" and lst[i+1] == 'z'):  # 17
-			lst[i] = "ձ"
-
-		elif (lst[i] == "g" and lst[i+1] == 'h'):  # 18
-			lst[i] = "ղ"
-
-		elif (lst[i] == "s" and lst[i+1] =='h'):  # 24
-			lst[i] = "շ"
-		elif (lst[i] == "c" and lst[i+1] =='h'):  # 26
-			lst[i] = "չ"
-
-		elif (lst[i] == "e" and lst[i+1] =='v'):  # 38
-			lst[i] = "և"
 		# Lower case letters here.
 
-		elif (lst[i] == "a"):  # 1
+		if (lst[i] == "a"):  # 1
 			lst[i] = "ա"
 
 		elif (lst[i] == "b"):  # 2
@@ -64,6 +119,9 @@ def armenian_latinisation(prompt):
 
 		elif (lst[i] == "y"):  # 8
 			lst[i] = "ը"
+
+		elif (lst[i] == 'o'):
+			lst[i] = 'ո'
 
 		elif (lst[i] == "t"):  # 9
 			lst[i] = "թ"
@@ -98,9 +156,6 @@ def armenian_latinisation(prompt):
 			lst[i] = "ո"
 			lst[i + 1] = "ւ"
 
-		elif (lst[i] == "vo" or lst[i] == 'o'):  # 25
-			lst[i] = "ո"
-
 
 		elif (lst[i] == "p"):  # 27
 			lst[i] = "պ"
@@ -110,9 +165,6 @@ def armenian_latinisation(prompt):
 
 		elif (lst[i] == "r"):  # 29
 			lst[i] = "ռ"
-
-		elif (lst[i] == "s" and lst[i-1]!='t'):  # 30
-			lst[i] = "ս"
 
 		elif (lst[i] == "v"):  # 31
 			lst[i] = "վ"
@@ -162,38 +214,17 @@ def armenian_latinisation(prompt):
 		elif (lst[i] == "Y"):  # 8
 			lst[i] = "Ը"
 
-		elif (lst[i] == "T" and lst[i+1] != 's'):  # 9
-			lst[i] = "Թ"
-
-		elif (lst[i] == 'T' and lst[i+1] == 's'):
-			lst[i] = 'Ծ'
-
 		elif (lst[i] == "J"):  # 10
 			lst[i] = "Ժ"
 
 		elif (lst[i] == "I"):  # 11
 			lst[i] = "Ի"
 
-		elif (lst[i] == "L" and lst[i+1] == 'L'):  # 12
-			lst[i] = "Լ"
-
-		elif (lst[i] == "K" and lst[i+1] == 'h'):  # 13
-			lst[i] = "Խ"
-
 		elif (lst[i] == "K"):  # 15
 			lst[i] = "Կ"
 
 		elif (lst[i] == "H"):  # 16
 			lst[i] = "Հ"
-
-		elif (lst[i] == "D" and lst[i+1] =='z'):  # 17
-			lst[i] = "Ձ"
-
-		elif (lst[i] == "G" and lst[i+1]=='h'):  # 18
-			lst[i] = "Ղ"
-
-		elif (lst[i] == "Ch"):  # 19
-			lst[i] = "Ճ"
 
 		elif (lst[i] == "M"):  # 21
 			lst[i] = "Մ"
@@ -204,17 +235,12 @@ def armenian_latinisation(prompt):
 		elif (lst[i] == "N"):  # 23
 			lst[i] = "Ն"
 
-		elif (lst[i] == "Sh"):  # 24
-			lst[i] = "Շ"
 
 		elif (lst[i] == "Vo"):  # 25
 			if (i == 0 or lst[i - 1] == " "):
 				lst[i] = "Ո"
 			else:
 				lst[i] = "O"
-
-		elif (lst[i] == "Ch"):  # 26
-			lst[i] = "Չ"
 
 		elif (lst[i] == "P"):  # 27
 			lst[i] = "Պ"
@@ -224,9 +250,6 @@ def armenian_latinisation(prompt):
 
 		elif (lst[i] == "R"):  # 29
 			lst[i] = "Ռ"
-
-		elif (lst[i] == "S" and lst[i-1]!='T'):  # 30
-			lst[i] = "Ս"
 
 		elif (lst[i] == "V"):  # 31
 			lst[i] = "Վ"
