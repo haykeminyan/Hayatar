@@ -121,9 +121,16 @@ def show_users():
             user = [i for i in user if i]
         # Format the user data and add it to the table
         try:
-            table_str = user[0]['emojie'] + '\t'*2 +f"@{user[0]['username']}" + ' '*5 + f"{user[0]['karma']}  karma" + '\n'
+            if user[0]['username'] is not None:
+                table_str = user[0]['emojie'] + '\t'*2 +f"@{user[0]['username']}" + ' '*5 + f"{user[0]['karma']}  karma" + '\n'
+            else:
+                table_str = user[0][
+                                'emojie'] + '\t' * 2 + f"@{user[0]['first_name']}" + ' ' * 5 + f"{user[0]['karma']}  karma" + '\n'
         except KeyError:
-            table_str = f"@{user[0]['username']}" + ' ' * 5 + f"{user[0]['karma']} karma"
+            if user[0]['username'] is not None:
+                table_str = f"@{user[0]['username']}" + ' ' * 5 + f"{user[0]['karma']} karma"
+            else:
+                table_str = f"@{user[0]['first_name']}" + ' ' * 5 + f"{user[0]['karma']} karma"
         table += '\n' + str(table_str)
 
     table += """  """
