@@ -543,6 +543,8 @@ def flood_detection(message):
         for i in range(len(timestamps) - 1):
             if abs(timestamps[i + 1] - timestamps[i]) <= 3:
                 username = get_user(potential_user_id)['username']
+                if username is None:
+                    username = get_user(potential_user_id)['first_name']
                 bot.send_message(chat_id=message.chat.id, text=f"You @{username} have been muted for a 30 seconds. Գնացեք և հանգստացեք!")
                 bot.restrict_chat_member(message.chat.id, potential_user_id, until_date=until_timestamp)
                 detector.clear()
