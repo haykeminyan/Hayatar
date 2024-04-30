@@ -426,6 +426,25 @@ def handle_russian_to_armenian(message):
         bot.reply_to(message, "An unexpected error occurred. Please try again later.")
 
 
+def send_admin(message):
+    # Assuming the admin's Telegram ID is known and stored in admin_id
+    admin_id = '199327249'
+    bot.send_message(admin_id, f"Message from {message.from_user.first_name}: {message.text}")
+    bot.reply_to(message, text='Thanks! Message was sent to admin user!')
+
+
+@bot.message_handler(
+    func=lambda message: message.text
+    and (
+        message.text.startswith("/message_admin@HayatarBot")
+        or message.text.startswith("/message_admin")
+    )
+)
+def message_admin(message):
+    bot.reply_to(message, text=f"Please send message to admin")
+    bot.register_next_step_handler(message, send_admin)
+
+
 def filtering_messages(message):
     check_if_user_registrated(message, bot)
     if not message.from_user.is_bot:
@@ -515,19 +534,6 @@ def flood_detection(message):
                 bot.send_message(chat_id=message.chat.id, text=f"You @{username} have been muted for a 30 seconds. Գնացեք և հանգստացեք!")
                 bot.restrict_chat_member(message.chat.id, potential_user_id, until_date=until_timestamp)
                 detector.clear()
-
-
-@bot.message_handler(
-    func=lambda message: message.text
-    and (
-        message.text.startswith("/message_admin@HayatarBot")
-        or message.text.startswith("/message_admin")
-    )
-)
-def message_admin(message):
-    # Assuming the admin's Telegram ID is known and stored in admin_id
-    admin_id = '1087968824'
-    bot.send_message(admin_id, f"Message from {message.from_user.first_name}: {' '.join(message.text.split()[1:])}")
 
 
 # Start polling for messages
