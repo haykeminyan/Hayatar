@@ -41,12 +41,15 @@ def add_user_to_mongo(user_data):
 
 
 # Example function to handle user registration from a chat
-def handle_user_registration(user_id, username, chat_id, karma):
+def handle_user_registration(user_id, username, first_name, last_name, chat_id, karma, is_premium):
     user_data = {
         'user_id': user_id,
         'username': username,
+        'first_name': first_name,
+        'last_name': last_name,
         'chat_id': chat_id,
         'karma': karma,
+        'is_premium': is_premium,
         'date_joined': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     }
     add_user_to_mongo(user_data)
@@ -89,6 +92,9 @@ def get_user(user_id):
 
 def get_user_username(username):
     return users_collection.find_one({'username': username})
+
+def get_user_first_name(first_name):
+    return users_collection.find_one({'first_name': first_name})
 
 
 def show_users():
@@ -135,6 +141,9 @@ def check_if_user_registrated(message, bot):
                          text=markdown_content,
                          parse_mode="Markdown")
         handle_user_registration(user_id=message.from_user.id, username=message.from_user.username,
+                                 first_name=message.from_user.first_name,
+                                 last_name=message.from_user.last_name,
+                                 is_premium=message.from_user.is_premium,
                                  chat_id=message.chat.id, karma=0)
 
 

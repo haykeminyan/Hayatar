@@ -11,8 +11,8 @@ import telebot
 from cencor import censor_profanity
 from pygoogletranslation import Translator
 from telebot import types
-from transliterate import translit
-from database import  get_user, decrease_user_karma, show_users, increase_user_karma, get_user_username, check_if_user_registrated, kick_user_to_hell
+from database import get_user, decrease_user_karma, show_users, increase_user_karma, get_user_username, \
+    check_if_user_registrated, kick_user_to_hell, get_user_first_name
 
 # Get the bot token and weather API key from environment variables
 BOT_TOKEN = "6425359689:AAFlmH2c6nma0zvVbr4ABCPgRVoQcGS40hk"
@@ -376,11 +376,14 @@ def karma_plus(message):
     if len(parts) == 2:
         target_username = parts[1]
         logger.info(target_username)
-        user_id = get_user_username(target_username.replace('@', ''))['user_id']
+        try:
+            user = get_user_username(target_username.replace('@', ''))['user_id']
+        except (KeyError, TypeError):
+            user = get_user_first_name(target_username.replace('@', ''))['user_id']
         if message.from_user.is_bot:
-            increase_user_karma(user_id)
+            increase_user_karma(user)
             bot.send_message(chat_id=message.chat.id,
-                             text=f"Congratulations! {target_username} karma is increased! You karma now is {get_user(user_id)['karma']}")
+                             text=f"Congratulations! {target_username} karma is increased! You karma now is {get_user(user)['karma']}")
         else:
             bot.send_message(chat_id=message.chat.id,
                              text=f'@{username} you are not allowed to change users karma! Vochxar!')
@@ -429,7 +432,7 @@ def handle_russian_to_armenian(message):
 def send_admin(message):
     # Assuming the admin's Telegram ID is known and stored in admin_id
     admin_id = '199327249'
-    bot.send_message(admin_id, f"Message from {message.from_user.first_name}: {message.text}")
+    bot.send_message(admin_id, f"Message from @{message.from_user.first_name}: {message.text}")
     bot.reply_to(message, text='Thanks! Message was sent to admin user!')
 
 
@@ -437,7 +440,7 @@ def send_admin(message):
 def welcome_new_members(message):
     for new_member in message.new_chat_members:
         if not new_member.is_bot:
-            bot.send_message(message.chat.id, f"Welcome {new_member.first_name} to our group! We're glad to have you here.")
+            bot.send_message(message.chat.id, f"Welcome @{new_member.first_name} to our group! We're glad to have you here.")
 
 
 @bot.message_handler(
