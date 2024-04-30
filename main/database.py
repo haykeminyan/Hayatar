@@ -119,6 +119,7 @@ def show_users():
             user[0]['emojie'] = user[1]['emojie']
             del user[1]['emojie']
             user = [i for i in user if i]
+            logger.info(user)
         # Format the user data and add it to the table
         try:
             if user[0]['username'] is not None:
