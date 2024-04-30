@@ -28,11 +28,13 @@ def armenian_latinisation(prompt):
 		elif wordChars[index] == 'T':
 			wordChars[index] = 'S'
 
-		elif wordChars[index] == 'T’':
+		elif wordChars[index] == 'T' and wordChars[index+1] == "’":
 			wordChars[index] = 'Թ'
+			del wordChars[index+1]
 
-		elif wordChars[index] == 't’':
+		elif wordChars[index] == 't' and wordChars[index+1] == '’':
 			wordChars[index] = 'թ'
+			del wordChars[index+1]
 
 		elif wordChars[index] == 'Y':
 			wordChars[index] = 'Յ'
