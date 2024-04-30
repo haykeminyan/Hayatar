@@ -12,7 +12,7 @@ services:
       - ./main:/app/main
     restart: always
     # run_bot for locally
-    command: python /app/main/run_bot.py
+    command: python /app/main/bot.py
     depends_on:
       - mongodb
     networks:
