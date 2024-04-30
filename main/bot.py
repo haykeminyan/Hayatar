@@ -517,5 +517,18 @@ def flood_detection(message):
                 detector.clear()
 
 
+@bot.message_handler(
+    func=lambda message: message.text
+    and (
+        message.text.startswith("/message_admin@HayatarBot")
+        or message.text.startswith("/message_admin")
+    )
+)
+def message_admin(message):
+    # Assuming the admin's Telegram ID is known and stored in admin_id
+    admin_id = '1087968824'
+    bot.send_message(admin_id, f"Message from {message.from_user.first_name}: {' '.join(message.text.split()[1:])}")
+
+
 # Start polling for messages
 bot.infinity_polling()
