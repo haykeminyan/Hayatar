@@ -431,8 +431,10 @@ def handle_russian_to_armenian(message):
 
 def send_admin(message):
     # Assuming the admin's Telegram ID is known and stored in admin_id
-    admin_id = '199327249'
-    bot.send_message(admin_id, f"Message from @{message.from_user.first_name}: {message.text}")
+    admin_id_hayk = '199327249'
+    admin_id_mik = '6712061401'
+    bot.send_message(admin_id_hayk, f"Message from @{message.from_user.first_name}: {message.text}")
+    bot.send_message(admin_id_mik, f"Message from @{message.from_user.first_name}: {message.text}")
     bot.reply_to(message, text='Thanks! Message was sent to admin user!')
 
 
