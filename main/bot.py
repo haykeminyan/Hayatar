@@ -433,6 +433,13 @@ def send_admin(message):
     bot.reply_to(message, text='Thanks! Message was sent to admin user!')
 
 
+@bot.message_handler(content_types=['new_chat_members'])
+def welcome_new_members(message):
+    for new_member in message.new_chat_members:
+        if not new_member.is_bot:
+            bot.send_message(message.chat.id, f"Welcome {new_member.first_name} to our group! We're glad to have you here.")
+
+
 @bot.message_handler(
     func=lambda message: message.text
     and (
