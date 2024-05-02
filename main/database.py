@@ -98,7 +98,7 @@ def get_user_first_name(first_name):
 
 
 def show_users():
-    cursor = users_collection.find({}, {'_id': 0, 'username': 1, 'karma': 1, 'first_name': 1})
+    cursor = users_collection.find({}, {'_id': 0, 'username': 1, 'karma': 1, 'first_name': 1, 'last_name': 1})
     users_data = list(cursor)  # Convert cursor to a list of dictionaries
 
     # Check if there are users in the databasef
