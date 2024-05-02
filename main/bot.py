@@ -541,7 +541,7 @@ def flood_detection(message):
 
     for potential_user_id, timestamps in detector.items():
         for i in range(len(timestamps) - 1):
-            if abs(timestamps[i + 1] - timestamps[i]) <= 3:
+            if abs(timestamps[i + 1] - timestamps[i]) <= 15:
                 username = get_user(potential_user_id)['username']
                 if username is None:
                     username = get_user(potential_user_id)['first_name']
