@@ -3,7 +3,7 @@ import logging
 import os
 import re
 import sys
-from armenian_transliterate import armenian_latinisation
+from armenian_transliterate import armenian_latin_to_armenian_hy
 import pytz
 import requests
 from datetime import timedelta
@@ -333,7 +333,7 @@ def handle_arm_command(message):
 def handle_armenian_latin_to_armenian(message):
     try:
         filtering_messages(message)
-        transliterated_text = armenian_latinisation(message.text)
+        transliterated_text = armenian_latin_to_armenian_hy(message.text)
         # Reply with the transliterated text
         bot.reply_to(message, text=transliterated_text)
     except Exception as e:
@@ -483,7 +483,7 @@ def handle_message(message):
     global current_mode
     try:
         if current_mode == "armenian_latin":
-            transliterated_text = armenian_latinisation(message.text)
+            transliterated_text = armenian_latin_to_armenian_hy(message.text)
             bot.reply_to(message, text=transliterated_text)
         elif current_mode == "russian_armenian":
             translator = Translator()
