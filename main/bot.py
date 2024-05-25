@@ -3,6 +3,8 @@ import logging
 import os
 import re
 import sys
+from functools import reduce
+
 from armenian_transliterate import armenian_latin_to_armenian_hy
 import pytz
 import requests
@@ -541,13 +543,57 @@ def flood_detection(message):
 
     for potential_user_id, timestamps in detector.items():
         for i in range(len(timestamps) - 1):
-            if abs(timestamps[i + 1] - timestamps[i]) <= 15:
+
+            logger.info(timestamps)
+            total_subtraction = sorted([timestamps[i] - timestamps[i + 1] for i in range(len(timestamps) - 1)])[0]
+
+            if abs(total_subtraction) <= 10 and len(timestamps) > 4:
                 username = get_user(potential_user_id)['username']
                 if username is None:
-                    username = get_user(potential_user_id)['first_name']
-                bot.send_message(chat_id=message.chat.id, text=f"You @{username} have been muted for a 30 seconds. Գնացեք և հանգստացեք!")
-                bot.restrict_chat_member(message.chat.id, potential_user_id, until_date=until_timestamp)
-                detector.clear()
+                    username = potential_user_id
+                    detector.clear()
+                    timestamps.clear()
+                    bot.send_message(chat_id=message.chat.id,
+                                     text=f"User with id {username} have been muted for a 30 seconds. Գնացեք և հանգստացեք!")
+
+                    bot.restrict_chat_member(message.chat.id, potential_user_id, until_date=until_timestamp)
+                else:
+                    logger.error(get_user(potential_user_id))
+                    detector.clear()
+                    timestamps.clear()
+                    bot.send_message(chat_id=message.chat.id,
+                                     text=f"You @{username} have been muted for a 30 seconds. Գնացեք և հանգստացեք!")
+                    bot.restrict_chat_member(message.chat.id, potential_user_id, until_date=until_timestamp)
+
+
+@bot.message_handler(
+    func=lambda message: message.text
+    and (message.text.startswith("/mute@HayatarBot") or message.text.startswith("/mute"))
+)
+def muting_user(message):
+    username = message.from_user.username
+    parts = message.text.split()
+    # Get the current time
+    current_time = pytz.timezone('Asia/Yerevan')
+    current_time_yerevan = datetime.datetime.now(current_time)
+    # Calculate the future time when the restriction will be lifted (e.g., 30 seconds from now)
+    until_time = current_time_yerevan + timedelta(seconds=30)
+    # Convert the future time to a Unix timestamp
+    until_timestamp = int(until_time.timestamp())
+
+    if len(parts) == 2:
+        target_username = parts[1]
+        user_id = get_user_username(target_username.replace('@', ''))['user_id']
+        if message.from_user.is_bot:
+            bot.send_message(chat_id=message.chat.id,
+                             text=f"Oops! {target_username} is muted for 30 seconds!")
+            bot.restrict_chat_member(message.chat.id, user_id, until_date=until_timestamp)
+        else:
+            bot.send_message(chat_id=message.chat.id,
+                             text=f'@{username} you are not allowed to mute users! Vochxar!')
+    else:
+        bot.send_message(chat_id=message.chat.id,
+                         text=f"Please write command correct /mute@HaytarBot @username")
 
 
 # Start polling for messages
