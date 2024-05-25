@@ -400,6 +400,60 @@ def handle_users_table(message):
 
 @bot.message_handler(
     func=lambda message: message.text
+    and (message.text.startswith("/mute@HayatarBot") or message.text.startswith("/mute"))
+)
+@admin_only
+def muting_user(message):
+    username = message.from_user.username
+    parts = message.text.split()
+    # Get the current time
+    current_time = pytz.timezone('Asia/Yerevan')
+    current_time_yerevan = datetime.datetime.now(current_time)
+    # Calculate the future time when the restriction will be lifted (e.g., 30 seconds from now)
+    until_time = current_time_yerevan + timedelta(seconds=30)
+    # Convert the future time to a Unix timestamp
+    until_timestamp = int(until_time.timestamp())
+    logger.info(parts)
+    logger.info('!'*10000)
+    logger.info(dir(message.from_user))
+    if len(parts) == 2:
+        target_username = parts[1]
+        user_id = get_user_username(target_username.replace('@', ''))['user_id']
+        if is_user_admin(chat_id=message.chat.id, user_id=user_id):
+            bot.send_message(chat_id=message.chat.id,
+                             text=f"Oops! {target_username} is muted for 30 seconds!")
+            bot.restrict_chat_member(message.chat.id, user_id, until_date=until_timestamp)
+        else:
+            bot.send_message(chat_id=message.chat.id,
+                             text=f'@{username} you are not allowed to mute users! Vochxar!')
+    else:
+        bot.send_message(chat_id=message.chat.id,
+                         text=f"Please write command correct /mute@HaytarBot @username")
+
+
+@bot.message_handler(
+    func=lambda message: message.text
+    and (message.text.startswith("/ban@HayatarBot") or message.text.startswith("/ban"))
+)
+@admin_only
+def ban_user(message):
+    parts = message.text.split()
+    if len(parts) == 2:
+        target_username = parts[1]
+        user_id = get_user_username(target_username.replace('@', ''))['user_id']
+        logger.info(user_id)
+        logger.info('?'*100)
+        bot.ban_chat_member(
+            chat_id=message.chat.id,
+            user_id=user_id,
+        )
+    else:
+        bot.send_message(chat_id=message.chat.id,
+                         text=f"Please write command correct /ban@HaytarBot @username")
+
+
+@bot.message_handler(
+    func=lambda message: message.text
     and (message.text.startswith("/karma_plus@HayatarBot") or message.text.startswith("/karma_plus"))
 )
 @admin_only
@@ -612,58 +666,6 @@ def flood_detection(message):
                     bot.send_message(chat_id=message.chat.id,
                                      text=f"You @{username} have been muted for a 30 seconds. Գնացեք և հանգստացեք!")
                     bot.restrict_chat_member(message.chat.id, potential_user_id, until_date=until_timestamp)
-
-
-@bot.message_handler(
-    func=lambda message: message.text
-    and (message.text.startswith("/mute@HayatarBot") or message.text.startswith("/mute"))
-)
-@admin_only
-def muting_user(message):
-    username = message.from_user.username
-    parts = message.text.split()
-    # Get the current time
-    current_time = pytz.timezone('Asia/Yerevan')
-    current_time_yerevan = datetime.datetime.now(current_time)
-    # Calculate the future time when the restriction will be lifted (e.g., 30 seconds from now)
-    until_time = current_time_yerevan + timedelta(seconds=30)
-    # Convert the future time to a Unix timestamp
-    until_timestamp = int(until_time.timestamp())
-    logger.info(parts)
-    logger.info('!'*10000)
-    logger.info(dir(message.from_user))
-    if len(parts) == 2:
-        target_username = parts[1]
-        user_id = get_user_username(target_username.replace('@', ''))['user_id']
-        if is_user_admin(chat_id=message.chat.id, user_id=user_id):
-            bot.send_message(chat_id=message.chat.id,
-                             text=f"Oops! {target_username} is muted for 30 seconds!")
-            bot.restrict_chat_member(message.chat.id, user_id, until_date=until_timestamp)
-        else:
-            bot.send_message(chat_id=message.chat.id,
-                             text=f'@{username} you are not allowed to mute users! Vochxar!')
-    else:
-        bot.send_message(chat_id=message.chat.id,
-                         text=f"Please write command correct /mute@HaytarBot @username")
-
-
-@bot.message_handler(
-    func=lambda message: message.text
-    and (message.text.startswith("/ban@HayatarBot") or message.text.startswith("/ban"))
-)
-@admin_only
-def ban_user(message):
-    username = message.from_user.username
-    parts = message.text.split()
-    if len(parts) == 2:
-        target_username = parts[1]
-        user_id = get_user_username(target_username.replace('@', ''))['user_id']
-        logger.info(user_id)
-        logger.info('?'*100)
-        bot.ban_chat_member(
-            chat_id=message.chat.id,
-            user_id=user_id,
-        )  #
 
 
 # Start polling for messages
