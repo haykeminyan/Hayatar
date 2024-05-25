@@ -4,7 +4,7 @@ import os
 import re
 import sys
 from functools import reduce
-
+from profanity_check import predict, predict_prob
 from armenian_transliterate import armenian_latin_to_armenian_hy
 import pytz
 import requests
@@ -14,7 +14,7 @@ from cencor import censor_profanity
 from pygoogletranslation import Translator
 from telebot import types
 from database import get_user, decrease_user_karma, show_users, increase_user_karma, get_user_username, \
-    check_if_user_registrated, kick_user_to_hell, get_user_first_name
+    check_if_user_registrated, get_user_first_name, update_user_karma_in_mongo
 
 # Get the bot token and weather API key from environment variables
 BOT_TOKEN = "6425359689:AAFlmH2c6nma0zvVbr4ABCPgRVoQcGS40hk"
@@ -89,8 +89,10 @@ available_commands = [
     "/karma_plus - Increases the karma of a specified user (Admin-only)",
     "/karma_minus - Decreases the karma of a specified user (Admin-only)",
     "Mentions - When the bot is mentioned, it responds with a list of available commands",
+    "mute - Mute users",
     "/info - Provides information about the developer and his bio",
 ]
+
 
 # Function to handle mentions of the bot
 @bot.channel_post_handler(
@@ -107,6 +109,33 @@ def handle_mention(message):
     bot.send_message(
         message.chat.id, "Available commands:\n" + "\n".join(available_commands)
     )
+
+
+def is_user_admin(chat_id, user_id):
+    try:
+        chat_administrators = bot.get_chat_administrators(chat_id)
+        logger.info(chat_administrators)
+        logger.info('!'*100)
+        for admin in chat_administrators:
+            logger.error(admin)
+            logger.info('!'*1000)
+            logger.info(admin.status)
+            logger.info('!'*1000)
+            if admin.status in ['creator', 'administrator']:
+                return True
+        return False
+    except Exception as e:
+        print(f"Error: {e}")
+        return False
+
+
+def admin_only(func):
+    def wrapper(message):
+        if is_user_admin(message.chat.id, message.from_user.id):
+            return func(message)
+        else:
+            bot.reply_to(message, "You are not authorized to use this command, Vochxar!")
+    return wrapper
 
 
 # Function to create a menu using ReplyKeyboardMarkup
@@ -336,6 +365,8 @@ def handle_armenian_latin_to_armenian(message):
     try:
         filtering_messages(message)
         transliterated_text = armenian_latin_to_armenian_hy(message.text)
+        if predict_prob([message.text]) > 0.8:
+            bot.reply_to(message, "Please be more polite! Calm down ara!")
         # Reply with the transliterated text
         bot.reply_to(message, text=transliterated_text)
     except Exception as e:
@@ -371,8 +402,8 @@ def handle_users_table(message):
     func=lambda message: message.text
     and (message.text.startswith("/karma_plus@HayatarBot") or message.text.startswith("/karma_plus"))
 )
+@admin_only
 def karma_plus(message):
-    username = message.from_user.username
     parts = message.text.split()
 
     if len(parts) == 2:
@@ -382,13 +413,11 @@ def karma_plus(message):
             user = get_user_username(target_username.replace('@', ''))['user_id']
         except (KeyError, TypeError):
             user = get_user_first_name(target_username.replace('@', ''))['user_id']
-        if message.from_user.is_bot:
-            increase_user_karma(user)
-            bot.send_message(chat_id=message.chat.id,
-                             text=f"Congratulations! {target_username} karma is increased! You karma now is {get_user(user)['karma']}")
-        else:
-            bot.send_message(chat_id=message.chat.id,
-                             text=f'@{username} you are not allowed to change users karma! Vochxar!')
+
+        increase_user_karma(user)
+        bot.send_message(chat_id=message.chat.id,
+                         text=f"Congratulations! {target_username} karma is increased! You karma now is {get_user(user)['karma']}")
+
     else:
         bot.send_message(chat_id=message.chat.id,
                          text=f"Please write command correct /karma_plus@HaytarBot @username")
@@ -398,6 +427,7 @@ def karma_plus(message):
     func=lambda message: message.text
     and (message.text.startswith("/karma_minus@HayatarBot") or message.text.startswith("/karma_minus"))
 )
+@admin_only
 def karma_minus(message):
     username = message.from_user.username
     parts = message.text.split()
@@ -405,13 +435,10 @@ def karma_minus(message):
     if len(parts) == 2:
         target_username = parts[1]
         user_id = get_user_username(target_username.replace('@', ''))['user_id']
-        if message.from_user.is_bot:
-            decrease_user_karma(user_id)
-            bot.send_message(chat_id=message.chat.id,
-                             text=f"Oops! {target_username} karma is decreased! You karma now is {get_user(user_id)['karma']}")
-        else:
-            bot.send_message(chat_id=message.chat.id,
-                             text=f'@{username} you are not allowed to change users karma! Vochxar!')
+        decrease_user_karma(user_id)
+        bot.send_message(chat_id=message.chat.id,
+                         text=f"Oops! {target_username} karma is decreased! You karma now is {get_user(user_id)['karma']}")
+
     else:
         bot.send_message(chat_id=message.chat.id,
                          text=f"Please write command correct /karma_plus@HaytarBot @username")
@@ -459,10 +486,31 @@ def message_admin(message):
     bot.register_next_step_handler(message, send_admin)
 
 
+def kick_user_to_hell(message, karma, bot):
+    user_id = message.from_user.id
+    if karma < -2 and not is_user_admin(chat_id=message.chat.id, user_id=user_id):
+        bot.kick_chat_member(
+            chat_id=message.chat.id,
+            user_id=message.from_user.id,
+        )  #
+        user = get_user(user_id=message.from_user.id)
+        logger.info(user)
+        logger.info('!'*100)
+        update_user_karma_in_mongo(user_id=user['user_id'], new_karma=0)
+        # Notify users that the user has been banned
+        bot.send_message(chat_id=message.chat.id, text="User has been banned. Բարի գալուստ գյորբագոր.")
+
+
 def filtering_messages(message):
     check_if_user_registrated(message, bot)
-    if not message.from_user.is_bot:
+    user_id = message.from_user.id
+    if not is_user_admin(chat_id=message.chat.id, user_id=user_id):
         flood_detection(message)
+
+    logger.info(predict_prob([message.text]))
+
+    if predict_prob([message.text]) > 0.8:
+        bot.reply_to(message, "Please be more polite! Calm down ara!")
     username = message.from_user.username
     if "*" in censor_profanity(message.text):
         username_id = message.from_user.id
@@ -570,6 +618,7 @@ def flood_detection(message):
     func=lambda message: message.text
     and (message.text.startswith("/mute@HayatarBot") or message.text.startswith("/mute"))
 )
+@admin_only
 def muting_user(message):
     username = message.from_user.username
     parts = message.text.split()
@@ -580,11 +629,13 @@ def muting_user(message):
     until_time = current_time_yerevan + timedelta(seconds=30)
     # Convert the future time to a Unix timestamp
     until_timestamp = int(until_time.timestamp())
-
+    logger.info(parts)
+    logger.info('!'*10000)
+    logger.info(dir(message.from_user))
     if len(parts) == 2:
         target_username = parts[1]
         user_id = get_user_username(target_username.replace('@', ''))['user_id']
-        if message.from_user.is_bot:
+        if is_user_admin(chat_id=message.chat.id, user_id=user_id):
             bot.send_message(chat_id=message.chat.id,
                              text=f"Oops! {target_username} is muted for 30 seconds!")
             bot.restrict_chat_member(message.chat.id, user_id, until_date=until_timestamp)
@@ -594,6 +645,25 @@ def muting_user(message):
     else:
         bot.send_message(chat_id=message.chat.id,
                          text=f"Please write command correct /mute@HaytarBot @username")
+
+
+@bot.message_handler(
+    func=lambda message: message.text
+    and (message.text.startswith("/ban@HayatarBot") or message.text.startswith("/ban"))
+)
+@admin_only
+def ban_user(message):
+    username = message.from_user.username
+    parts = message.text.split()
+    if len(parts) == 2:
+        target_username = parts[1]
+        user_id = get_user_username(target_username.replace('@', ''))['user_id']
+        logger.info(user_id)
+        logger.info('?'*100)
+        bot.ban_chat_member(
+            chat_id=message.chat.id,
+            user_id=user_id,
+        )  #
 
 
 # Start polling for messages

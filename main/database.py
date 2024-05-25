@@ -66,6 +66,7 @@ def decrease_user_karma(user_id):
         update_user_karma_in_mongo(user_id, new_karma)
 
 
+
 def increase_user_karma(user_id):
     # Retrieve user data from MongoDB based on user_id
     user = get_user(user_id)
@@ -155,17 +156,5 @@ def check_if_user_registrated(message, bot):
                                  chat_id=message.chat.id, karma=0)
 
 
-def kick_user_to_hell(message, karma, bot):
-    if karma < -2 and not message.from_user.is_bot:
-        bot.kick_chat_member(
-            chat_id=message.chat.id,
-            user_id=message.from_user.id,
-        )  #
-        user = get_user(user_id=message.from_user.id)
-        logger.info(user)
-        logger.info('!'*100)
-        update_user_karma_in_mongo(user_id=user['user_id'], new_karma=0)
-        # Notify users that the user has been banned
-        bot.send_message(chat_id=message.chat.id, text="User has been banned. Բարի գալուստ գյորբագոր.")
 
 
