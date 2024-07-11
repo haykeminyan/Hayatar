@@ -611,12 +611,6 @@ def handle_weather(city, chat_id):
             f"Temperature: {temperature}°C"
         )
         bot.send_message(chat_id, text=weather_response)
-    elif city.lower() == "baku":
-        bot.send_message(chat_id, text=f"Bakunakert is loading ...")
-        bot.send_message(chat_id, text=f"Glory to Armenia!")
-    elif city.lower() == "istanbul":
-        bot.send_message(chat_id, text=f"Constantinople is loading ...")
-        bot.send_message(chat_id, text=f"Glory to Armenia!")
     else:
         bot.send_message(chat_id, text=f"Cannot find weather information for {city}.")
 
