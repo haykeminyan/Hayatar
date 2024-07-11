@@ -17,8 +17,8 @@ from database import get_user, decrease_user_karma, show_users, increase_user_ka
     check_if_user_registrated, get_user_first_name, update_user_karma_in_mongo
 
 # Get the bot token and weather API key from environment variables
-BOT_TOKEN = "6425359689:AAFlmH2c6nma0zvVbr4ABCPgRVoQcGS40hk"
-WEATHER_API_KEY = "3171b2c37c2a09802dd0b45d114c4d2a"
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+WEATHER_API_KEY = os.getenv('WEATHER_API_KEY')
 last_message_time = {}
 # Create a telebot instance
 bot = telebot.TeleBot(BOT_TOKEN)
@@ -64,8 +64,6 @@ armenian_cities = [
     "Sevan",
     "Gavar",
     "Vardenis",
-    "baku",
-    "istanbul"
     # Add more cities as needed
 ]
 
